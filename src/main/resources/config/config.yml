@@ -19,6 +19,17 @@ economy:
 
 sellGui:
   inventoryRowCount: 6
+
   # - player_name: String
   # - player_display_name: String
   inventoryTitle$: '"&3Sell-GUI von &9" & player_display_name'
+
+  # Processed top-down; define higher-prioritized matchers first!
+  sellableItems:
+#   -
+#     # Append a $ to the name to use GPEEE-Expressions
+#     # Example: valuePerSingleItem$: '10.0 / 64'
+#     valuePerSingleItem: .05
+#     # https://github.com/BlvckBytes/BukkitEvaluable#itemstack-section
+#     itemDescription:
+#       type: SAND

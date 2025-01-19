@@ -14,6 +14,9 @@ import java.util.List;
 
 public class SellGuiCommand implements CommandExecutor, TabCompleter {
 
+  // TODO: Implement reload command
+  // TODO: Implement price-catalogue command
+
   private final SellGuiManager guiManager;
 
   public SellGuiCommand(SellGuiManager guiManager) {
@@ -37,7 +40,7 @@ public class SellGuiCommand implements CommandExecutor, TabCompleter {
       return true;
     }
 
-    sender.sendMessage("§aOpened Sell-GUI!");
+    sender.sendMessage("§aPlease move the items you seek to sell into the Sell-GUI!");
     return true;
   }
 

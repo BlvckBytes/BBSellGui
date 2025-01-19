@@ -33,6 +33,13 @@ public class BBSellGuiPlugin extends JavaPlugin {
       var configManager = new ConfigManager(this, "config");
       var config = new ConfigKeeper<>(configManager, "config.yml", MainSection.class);
 
+      var numberOfSellableItems = config.rootSection.sellGui.sellableItems.size();
+
+      if (numberOfSellableItems > 0)
+        logger.info("Loaded " + numberOfSellableItems + " descriptions of sellable items!");
+      else
+        logger.warning("There are no sellable items defined yet!");
+
       var matchingProvider = locateEconomyProviderOrThrow(config);
 
       logger.info("Successfully located a matching economy-provider named \"" + matchingProvider.getPlugin().getName() + "\"");

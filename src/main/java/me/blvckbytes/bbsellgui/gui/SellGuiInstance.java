@@ -42,6 +42,10 @@ public class SellGuiInstance {
     holder.openInventory(inventory);
   }
 
+  public void clear() {
+    inventory.clear();
+  }
+
   public boolean isInventory(Inventory inventory) {
     return this.inventory.equals(inventory);
   }
