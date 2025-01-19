@@ -1,0 +1,21 @@
+# ________________________    ___________________      _____
+# ___  __ )__  __ )_  ___/_______  /__  /_  ____/___  ____(_)
+# __  __  |_  __  |____ \_  _ \_  /__  /_  / __ _  / / /_  /
+# _  /_/ /_  /_/ /____/ //  __/  / _  / / /_/ / / /_/ /_  /
+# /_____/ /_____/ /____/ \___//_/  /_/  \____/  \__,_/ /_/
+#
+# BBSellGui - Developed by BlvckBytes <blvckbytes@gmail.com>
+# Repository - https://github.com/BlvckBytes/BBSellGui
+# ASCII-Art - https://patorjk.com/software/taag/#p=display&f=Speed
+
+commands:
+  sellGui:
+    name: 'sellgui'
+    aliases:
+      - sgui
+
+sellGui:
+  inventoryRowCount: 6
+  # - player_name: String
+  # - player_display_name: String
+  inventoryTitle$: '"&3Sell-GUI von &9" & player_display_name'

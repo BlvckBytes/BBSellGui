@@ -1,0 +1,9 @@
+main: me.blvckbytes.bbsellgui.BBSellGuiPlugin
+version: 0.0.1
+author: BlvckBytes
+name: BBSellGui
+api-version: 1.21
+commands:
+  sellgui:
+    description: 'Access the batch-selling GUI'
+    permission: 'bbsellgui.access-gui'
