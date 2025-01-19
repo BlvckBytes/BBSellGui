@@ -3,6 +3,8 @@ version: 0.0.1
 author: BlvckBytes
 name: BBSellGui
 api-version: 1.21
+depend: [Vault]
+softdepend: [Essentials, WorldEconomy]
 commands:
   sellgui:
     description: 'Access the batch-selling GUI'

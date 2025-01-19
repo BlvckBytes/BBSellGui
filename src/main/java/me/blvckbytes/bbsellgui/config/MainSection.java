@@ -9,6 +9,7 @@ public class MainSection extends AConfigSection {
 
   public CommandsSection commands;
   public SellGuiSection sellGui;
+  public EconomySection economy;
 
   public MainSection(EvaluationEnvironmentBuilder baseEnvironment) {
     super(baseEnvironment);

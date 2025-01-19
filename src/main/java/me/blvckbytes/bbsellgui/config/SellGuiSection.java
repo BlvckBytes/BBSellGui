@@ -24,9 +24,9 @@ public class SellGuiSection extends AConfigSection {
     super.afterParsing(fields);
 
     if (inventoryRowCount <= 0)
-      throw new MappingError("The field \"inventoryRowCount\" cannot be less than or equal to zero!");
+      throw new MappingError("The property \"inventoryRowCount\" cannot be less than or equal to zero!");
 
     if (inventoryRowCount > 6)
-      throw new MappingError("The field \"inventoryRowCount\" cannot be greater than 6!");
+      throw new MappingError("The property \"inventoryRowCount\" cannot be greater than 6!");
   }
 }

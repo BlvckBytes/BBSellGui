@@ -2,6 +2,7 @@ package me.blvckbytes.bbsellgui.gui;
 
 import me.blvckbytes.bbsellgui.config.MainSection;
 import me.blvckbytes.bukkitevaluable.ConfigKeeper;
+import net.milkbowl.vault.economy.Economy;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -17,10 +18,12 @@ public class SellGuiManager implements Listener {
 
   private final Map<UUID, SellGuiInstance> instanceByHolderId;
   private final ConfigKeeper<MainSection> config;
+  private final Economy economy;
 
-  public SellGuiManager(ConfigKeeper<MainSection> config) {
+  public SellGuiManager(ConfigKeeper<MainSection> config, Economy economy) {
     this.instanceByHolderId = new HashMap<>();
     this.config = config;
+    this.economy = economy;
   }
 
   public boolean createAndOpenForPlayer(Player player) {
