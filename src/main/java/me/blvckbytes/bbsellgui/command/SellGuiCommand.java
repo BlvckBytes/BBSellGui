@@ -5,6 +5,7 @@ import me.blvckbytes.bbsellgui.config.MainSection;
 import me.blvckbytes.bbsellgui.display.ItemDisplayManager;
 import me.blvckbytes.bbsellgui.gui.SellGuiManager;
 import me.blvckbytes.bukkitevaluable.ConfigKeeper;
+import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -23,16 +24,19 @@ public class SellGuiCommand implements CommandExecutor, TabCompleter {
   private final SellGuiManager guiManager;
   private final ItemDisplayManager displayManager;
   private final ConfigKeeper<MainSection> config;
+  private final Economy economy;
   private final Logger logger;
 
   public SellGuiCommand(
     SellGuiManager guiManager,
     ItemDisplayManager displayManager,
+    Economy economy,
     ConfigKeeper<MainSection> config,
     Logger logger
   ) {
     this.guiManager = guiManager;
     this.displayManager = displayManager;
+    this.economy = economy;
     this.config = config;
     this.logger = logger;
   }
@@ -132,9 +136,17 @@ public class SellGuiCommand implements CommandExecutor, TabCompleter {
       return CommandResult.SUCCESS;
     }
 
-    player.sendMessage("§aWould now check the price of your held item");
+    var valuePerItem = guiManager.determineValuePerItem(targetItem);
 
-    // TODO: Check total value of item held and report back
+    if (valuePerItem == null) {
+      player.sendMessage("§cThe item held in your main-hand cannot be sold using this UI!");
+      return CommandResult.SUCCESS;
+    }
+
+    var totalValue = economy.format(valuePerItem * targetItem.getAmount());
+
+    player.sendMessage("§aThe item in your hand would yield a total of " + totalValue + "!");
+
     return CommandResult.SUCCESS;
   }
 

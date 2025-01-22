@@ -63,7 +63,7 @@ public class BBSellGuiPlugin extends JavaPlugin {
       displayManager = new ItemDisplayManager(config);
       Bukkit.getServer().getPluginManager().registerEvents(displayManager, this);
 
-      var pipePredicateCommandExecutor = new SellGuiCommand(sellGuiManager, displayManager, config, logger);
+      var pipePredicateCommandExecutor = new SellGuiCommand(sellGuiManager, displayManager, economy, config, logger);
       var sellGuiCommand = Objects.requireNonNull(getCommand(SellGuiCommandSection.INITIAL_NAME));
 
       sellGuiCommand.setExecutor(pipePredicateCommandExecutor);

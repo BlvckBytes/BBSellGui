@@ -74,7 +74,7 @@ public class SellGuiManager implements Listener {
     }
   }
 
-  private @Nullable Double determineValuePerItem(ItemStack item) {
+  public @Nullable Double determineValuePerItem(ItemStack item) {
     var descriptionCandidates = config.rootSection.sellGui.sellableItemsByMaterial.get(item.getType());
 
     if (descriptionCandidates == null)
