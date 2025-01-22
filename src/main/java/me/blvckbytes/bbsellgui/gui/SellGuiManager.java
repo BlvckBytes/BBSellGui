@@ -137,6 +137,7 @@ public class SellGuiManager implements Listener {
       } else {
         // TODO: Enumerate in a detailed manner
         player.sendMessage("§aYou successfully sold " + receiptItems.size() + " stacks and earned a total of " + economy.format(valueTotal));
+        // TODO: Persistently log receipts for each transaction, with a config-option to disable
       }
     }
 

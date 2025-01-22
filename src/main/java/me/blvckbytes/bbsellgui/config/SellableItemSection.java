@@ -22,6 +22,9 @@ public class SellableItemSection extends AConfigSection {
 
   public BukkitEvaluable valuePerSingleItem;
 
+  @CSAlways
+  public ItemStackSection displayPatch;
+
   @CSIgnore
   public double evaluatedValuePerSingleItem;
 

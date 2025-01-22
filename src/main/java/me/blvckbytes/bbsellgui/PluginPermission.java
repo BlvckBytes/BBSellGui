@@ -3,7 +3,10 @@ package me.blvckbytes.bbsellgui;
 import org.bukkit.permissions.Permissible;
 
 public enum PluginPermission {
-  ACCESS_GUI("access-gui")
+  ACCESS_GUI("command.access-gui"),
+  RELOAD("command.reload-gui"),
+  PRICE_CATALOGUE("command.price-catalogue"),
+  CHECK_PRICE("command.check-price"),
   ;
 
   public final String node;

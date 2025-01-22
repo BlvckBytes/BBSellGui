@@ -50,7 +50,7 @@ public class BBSellGuiPlugin extends JavaPlugin {
 
       var commandUpdater = new CommandUpdater(this);
 
-      var pipePredicateCommandExecutor = new SellGuiCommand(guiManager);
+      var pipePredicateCommandExecutor = new SellGuiCommand(guiManager, config, logger);
       var sellGuiCommand = Objects.requireNonNull(getCommand(SellGuiCommandSection.INITIAL_NAME));
 
       sellGuiCommand.setExecutor(pipePredicateCommandExecutor);
