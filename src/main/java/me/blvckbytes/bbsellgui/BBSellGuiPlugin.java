@@ -23,6 +23,7 @@ import java.util.logging.Level;
 
 public class BBSellGuiPlugin extends JavaPlugin {
 
+  private SellGuiManager sellGuiManager;
   private ItemDisplayManager displayManager;
 
   @Override
@@ -54,15 +55,15 @@ public class BBSellGuiPlugin extends JavaPlugin {
       config.registerReloadListener(renderItems);
       renderItems.run();
 
-      var guiManager = new SellGuiManager(config, economy);
-      Bukkit.getServer().getPluginManager().registerEvents(guiManager, this);
+      sellGuiManager = new SellGuiManager(config, economy);
+      Bukkit.getServer().getPluginManager().registerEvents(sellGuiManager, this);
 
       var commandUpdater = new CommandUpdater(this);
 
       displayManager = new ItemDisplayManager(config);
       Bukkit.getServer().getPluginManager().registerEvents(displayManager, this);
 
-      var pipePredicateCommandExecutor = new SellGuiCommand(guiManager, displayManager, config, logger);
+      var pipePredicateCommandExecutor = new SellGuiCommand(sellGuiManager, displayManager, config, logger);
       var sellGuiCommand = Objects.requireNonNull(getCommand(SellGuiCommandSection.INITIAL_NAME));
 
       sellGuiCommand.setExecutor(pipePredicateCommandExecutor);
@@ -118,5 +119,8 @@ public class BBSellGuiPlugin extends JavaPlugin {
   public void onDisable() {
     if (displayManager != null)
       displayManager.onDisable();
+
+    if (sellGuiManager != null)
+      sellGuiManager.onDisable();
   }
 }

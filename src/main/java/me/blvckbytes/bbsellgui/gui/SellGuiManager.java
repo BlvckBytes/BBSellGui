@@ -55,6 +55,25 @@ public class SellGuiManager implements Listener {
       onSessionEnd(player, event.getInventory());
   }
 
+  public void onDisable() {
+    for (var iterator = instanceByHolderId.values().iterator(); iterator.hasNext();) {
+      var instance = iterator.next();
+
+      for (var item : instance.getContents()) {
+        if (item == null || item.getType() == Material.AIR)
+          continue;
+
+        handBackOrDropAtPlayer(instance.holder, item);
+      }
+
+      instance.clear();
+      iterator.remove();
+
+      instance.holder.closeInventory();
+      instance.holder.sendMessage("§cDue to the plugin being about to get disabled, your items have been handed back to you!");
+    }
+  }
+
   private @Nullable Double determineValuePerItem(ItemStack item) {
     var descriptionCandidates = config.rootSection.sellGui.sellableItemsByMaterial.get(item.getType());
 

@@ -12,7 +12,7 @@ import org.bukkit.inventory.ItemStack;
 
 public class SellGuiInstance {
 
-  private final Player holder;
+  public final Player holder;
   private final ConfigKeeper<MainSection> config;
   private final Inventory inventory;
 
