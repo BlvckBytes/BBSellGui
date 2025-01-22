@@ -4,6 +4,7 @@ import com.cryptomorin.xseries.XMaterial;
 import me.blvckbytes.bbsellgui.command.SellGuiCommand;
 import me.blvckbytes.bbsellgui.config.MainSection;
 import me.blvckbytes.bbsellgui.config.SellGuiCommandSection;
+import me.blvckbytes.bbsellgui.display.ItemDisplayManager;
 import me.blvckbytes.bbsellgui.gui.SellGuiManager;
 import me.blvckbytes.bbsellgui.listener.CommandSendListener;
 import me.blvckbytes.bukkitevaluable.CommandUpdater;
@@ -21,6 +22,8 @@ import java.util.Objects;
 import java.util.logging.Level;
 
 public class BBSellGuiPlugin extends JavaPlugin {
+
+  private ItemDisplayManager displayManager;
 
   @Override
   public void onEnable() {
@@ -45,12 +48,21 @@ public class BBSellGuiPlugin extends JavaPlugin {
       logger.info("Successfully located a matching economy-provider named \"" + matchingProvider.getPlugin().getName() + "\"");
 
       var economy = matchingProvider.getProvider();
+
+      Runnable renderItems = () -> config.rootSection.sellGui.renderSellableItems(economy);
+
+      config.registerReloadListener(renderItems);
+      renderItems.run();
+
       var guiManager = new SellGuiManager(config, economy);
       Bukkit.getServer().getPluginManager().registerEvents(guiManager, this);
 
       var commandUpdater = new CommandUpdater(this);
 
-      var pipePredicateCommandExecutor = new SellGuiCommand(guiManager, config, logger);
+      displayManager = new ItemDisplayManager(config);
+      Bukkit.getServer().getPluginManager().registerEvents(displayManager, this);
+
+      var pipePredicateCommandExecutor = new SellGuiCommand(guiManager, displayManager, config, logger);
       var sellGuiCommand = Objects.requireNonNull(getCommand(SellGuiCommandSection.INITIAL_NAME));
 
       sellGuiCommand.setExecutor(pipePredicateCommandExecutor);
@@ -100,5 +112,11 @@ public class BBSellGuiPlugin extends JavaPlugin {
       throw new IllegalStateException("Could not locate a provider of Vault's Economy-API with the name of \"" + targetProviderName + "\" within " + unmatchedProviderNames);
 
     return matchingProvider;
+  }
+
+  @Override
+  public void onDisable() {
+    if (displayManager != null)
+      displayManager.onDisable();
   }
 }

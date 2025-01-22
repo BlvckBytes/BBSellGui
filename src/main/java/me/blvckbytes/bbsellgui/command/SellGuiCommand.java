@@ -2,6 +2,7 @@ package me.blvckbytes.bbsellgui.command;
 
 import me.blvckbytes.bbsellgui.PluginPermission;
 import me.blvckbytes.bbsellgui.config.MainSection;
+import me.blvckbytes.bbsellgui.display.ItemDisplayManager;
 import me.blvckbytes.bbsellgui.gui.SellGuiManager;
 import me.blvckbytes.bukkitevaluable.ConfigKeeper;
 import org.bukkit.Material;
@@ -20,11 +21,18 @@ import java.util.logging.Logger;
 public class SellGuiCommand implements CommandExecutor, TabCompleter {
 
   private final SellGuiManager guiManager;
+  private final ItemDisplayManager displayManager;
   private final ConfigKeeper<MainSection> config;
   private final Logger logger;
 
-  public SellGuiCommand(SellGuiManager guiManager, ConfigKeeper<MainSection> config, Logger logger) {
+  public SellGuiCommand(
+    SellGuiManager guiManager,
+    ItemDisplayManager displayManager,
+    ConfigKeeper<MainSection> config,
+    Logger logger
+  ) {
     this.guiManager = guiManager;
+    this.displayManager = displayManager;
     this.config = config;
     this.logger = logger;
   }
@@ -138,11 +146,19 @@ public class SellGuiCommand implements CommandExecutor, TabCompleter {
     if (!(sender instanceof Player player))
       return CommandResult.NOT_A_PLAYER;
 
-    player.sendMessage("§aWould now display the price-catalogue");
-
-    // TODO: Open paginated UI with all sellable items
     // NOTE: Maybe support a trailing item-predicate to search through the price-list?
     //       Would require to select a language then though; maybe just use the client-locale?
+    var catalogueContents = config.rootSection.sellGui.getRenderedSellableItems();
+
+    if (catalogueContents.isEmpty()) {
+      // TODO: If is filtering and catalog did contain items, change message to "yielded no results"
+      player.sendMessage("§cThere are no catalogue-contents to display yet!");
+      return CommandResult.SUCCESS;
+    }
+
+    displayManager.openFor(player, catalogueContents, null);
+    player.sendMessage("§aOpened catalogue!");
+
     return CommandResult.SUCCESS;
   }
 }

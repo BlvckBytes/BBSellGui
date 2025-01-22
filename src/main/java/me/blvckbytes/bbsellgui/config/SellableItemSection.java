@@ -8,6 +8,7 @@ import me.blvckbytes.bbconfigmapper.sections.CSIgnore;
 import me.blvckbytes.bukkitevaluable.BukkitEvaluable;
 import me.blvckbytes.bukkitevaluable.section.ItemStackSection;
 import me.blvckbytes.gpeee.interpreter.EvaluationEnvironmentBuilder;
+import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -62,6 +63,26 @@ public class SellableItemSection extends AConfigSection {
 
     if (evaluatedValuePerSingleItem <= 0)
       throw new MappingError("The property \"valuePerSingleItem\" cannot be less than or equal to zero!");
+  }
+
+  public ItemStack render(Economy economy) {
+    var stackSize = itemMaterial.getMaxStackSize();
+
+    var fullStackValue = evaluatedValuePerSingleItem * stackSize;
+    var halfStackValue = evaluatedValuePerSingleItem * stackSize / 2.0;
+    var quarterStackValue = evaluatedValuePerSingleItem * stackSize / 4.0;
+
+    return itemDescription
+      .asItem()
+      .patch(displayPatch)
+      .build(
+        getBaseEnvironment()
+          .withStaticVariable("value_single_item", economy.format(evaluatedValuePerSingleItem))
+          .withStaticVariable("value_full_stack", economy.format(fullStackValue))
+          .withStaticVariable("value_half_stack", economy.format(halfStackValue))
+          .withStaticVariable("value_quarter_stack", economy.format(quarterStackValue))
+          .build()
+      );
   }
 
   public boolean describesItem(ItemStack item) {

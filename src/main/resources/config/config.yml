@@ -31,5 +31,48 @@ sellGui:
 #     # Example: valuePerSingleItem$: '10.0 / 64'
 #     valuePerSingleItem: .05
 #     # https://github.com/BlvckBytes/BukkitEvaluable#itemstack-section
+#     # - value_single_item: String
+#     # - value_full_stack: String
+#     # - value_half_stack: String
+#     # - value_quarter_stack: String
 #     itemDescription:
 #       type: SAND
+#     # https://github.com/BlvckBytes/BukkitEvaluable#itemstack-section
+#     displayPatch:
+#       lore:
+#         - 'My additional lore'
+
+# - current_page: Integer
+# - number_of_pages: Integer
+# - page_size: Integer
+# - player_name: Integer
+# - player_display_name: Integer
+catalogueGui:
+  inventoryRowCount: 6
+  inventoryTitle$: '"&3Preiskatalog &9" & current_page & "&8/&9" & number_of_pages'
+
+  previousPageButton:
+    type: PLAYER_HEAD
+    textures: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMWExZWYzOThhMTdmMWFmNzQ3NzAxNDUxN2Y3ZjE0MWQ4ODZkZjQxYTMyYzczOGNjOGE4M2ZiNTAyOTdiZDkyMSJ9fX0='
+    name: '&3Vorherige Seite'
+    lore:
+      - ' '
+      - '§8➥ &bLinksklick &7- &3Vorherige Seite'
+      - '§8➥ &bRechtsklick &7- &3Erste Seite'
+
+  closeButton:
+    type: BARRIER
+    name: '&cSchließen'
+
+  nextPageButton:
+    type: PLAYER_HEAD
+    textures: 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYWM5YzY3YTlmMTY4NWNkMWRhNDNlODQxZmU3ZWJiMTdmNmFmNmVhMTJhN2UxZjI3MjJmNWU3ZjA4OThkYjlmMyJ9fX0='
+    name: '&3Nächste Seite'
+    lore:
+      - ' '
+      - '§8➥ &bLinksklick &7- &3Nächste Seite'
+      - '§8➥ &bRechtsklick &7- &3Letzte Seite'
+
+  controlRowFiller:
+    type: BLACK_STAINED_GLASS_PANE
+    name: ' '
