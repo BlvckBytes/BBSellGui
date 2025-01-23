@@ -101,9 +101,9 @@ playerMessages:
   unsellableReceiptFormatter$: |
     "<red>Unsold items: " & iter_cat(receipt_groups, (receipt_group) => (
       "<green>" & receipt_group.amountTotal & "x <dark_gray>(" & iter_cat(receipt_group.entries, (group_entry) => (
-        "<gray><hover:show_text:'<gray>Slot " & group_entry.uiSlotIndex + 1 & "'>" & group_entry.amount & "</hover>"
+        "<gray><u><hover:show_text:'<gray>Slot " & group_entry.uiSlotIndex + 1 & "'>" & group_entry.amount & "</hover></u>"
       ), "<dark_gray>, ") & "<dark_gray>) <green>" & (
-        "<hover:show_text:'" & (
+        "<u><hover:show_text:'" & (
           iter_cat(filter(flatten(
             if receipt_group.displayName == null then null else receipt_group.displayName & "<reset>",
             iter_cat(receipt_group.loreLines, (it) => it & "<reset>", "<br>"),
@@ -111,6 +111,6 @@ playerMessages:
             iter_cat(receipt_group.potionEffects, (it) => key(it) & " " & value(it).amplifier & " " & value(it).duration, "<br>"),
             if receipt_group.maximumDamage == 0 then null else "Durability: " & receipt_group.remainingDamage & "/" & receipt_group.maximumDamage
           ), (it) => it != null or it != ""), (it) => it, "<br><br>", "<red>No metadata", true)
-        ) & "'>" & receipt_group.itemName & "</hover>"
+        ) & "'>" & receipt_group.itemName & "</hover></u>"
       )
     ), "<dark_gray>, ")
