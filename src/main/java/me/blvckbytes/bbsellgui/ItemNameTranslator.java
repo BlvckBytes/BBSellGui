@@ -73,7 +73,7 @@ public class ItemNameTranslator {
     persistDataIfApplicable();
   }
 
-  private TranslationLanguage determineLanguage(Player player) {
+  public TranslationLanguage determineLanguage(Player player) {
     return chosenLanguageByPlayerId.getOrDefault(player.getUniqueId(), config.rootSection.defaultReceiptLanguage);
   }
 

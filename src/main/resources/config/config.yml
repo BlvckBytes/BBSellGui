@@ -79,3 +79,6 @@ catalogueGui:
   controlRowFiller:
     type: BLACK_STAINED_GLASS_PANE
     name: ' '
+
+playerMessages:
+  commandSellGuiPredicateError$: '"&cFehlerhaftes Prädikat: " & error_message'

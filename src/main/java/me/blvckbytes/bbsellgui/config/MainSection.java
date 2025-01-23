@@ -12,6 +12,7 @@ public class MainSection extends AConfigSection {
   public SellGuiSection sellGui;
   public CatalogueGuiSection catalogueGui;
   public EconomySection economy;
+  public PlayerMessagesSection playerMessages;
   public TranslationLanguage defaultReceiptLanguage;
 
   public MainSection(EvaluationEnvironmentBuilder baseEnvironment) {

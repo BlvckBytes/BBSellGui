@@ -6,8 +6,13 @@ import me.blvckbytes.bbsellgui.config.MainSection;
 import me.blvckbytes.bbsellgui.display.ItemDisplayManager;
 import me.blvckbytes.bbsellgui.gui.SellGuiManager;
 import me.blvckbytes.bukkitevaluable.ConfigKeeper;
+import me.blvckbytes.item_predicate_parser.PredicateHelper;
+import me.blvckbytes.item_predicate_parser.parse.ItemPredicateParseException;
+import me.blvckbytes.item_predicate_parser.predicate.ItemPredicate;
 import me.blvckbytes.item_predicate_parser.translation.TranslationLanguage;
 import me.blvckbytes.syllables_matcher.NormalizedConstant;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
@@ -18,6 +23,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,6 +33,7 @@ public class SellGuiCommand implements CommandExecutor, TabCompleter {
   private final SellGuiManager guiManager;
   private final ItemDisplayManager displayManager;
   private final ItemNameTranslator itemTranslator;
+  private final PredicateHelper predicateHelper;
   private final ConfigKeeper<MainSection> config;
   private final Economy economy;
   private final Logger logger;
@@ -35,6 +42,7 @@ public class SellGuiCommand implements CommandExecutor, TabCompleter {
     SellGuiManager guiManager,
     ItemDisplayManager displayManager,
     ItemNameTranslator itemTranslator,
+    PredicateHelper predicateHelper,
     Economy economy,
     ConfigKeeper<MainSection> config,
     Logger logger
@@ -42,6 +50,7 @@ public class SellGuiCommand implements CommandExecutor, TabCompleter {
     this.guiManager = guiManager;
     this.displayManager = displayManager;
     this.itemTranslator = itemTranslator;
+    this.predicateHelper = predicateHelper;
     this.economy = economy;
     this.config = config;
     this.logger = logger;
@@ -111,6 +120,9 @@ public class SellGuiCommand implements CommandExecutor, TabCompleter {
     if (args.length == 1)
       return CommandAction.matcher.createCompletions(args[0], actionFilter);
 
+    if (!(sender instanceof Player player))
+      return List.of();
+
     var commandAction = CommandAction.matcher.matchFirst(args[0], actionFilter);
 
     if (commandAction == null)
@@ -121,7 +133,22 @@ public class SellGuiCommand implements CommandExecutor, TabCompleter {
         return TranslationLanguage.matcher.createCompletions(args[1]);
     }
 
-    // TODO: Possibly handle predicate completion for catalogue-filtering
+    if (commandAction.constant == CommandAction.PRICE_CATALOGUE) {
+      var language = itemTranslator.determineLanguage(player);
+
+      try {
+        var tokens = predicateHelper.parseTokens(args, 1);
+        var completions = predicateHelper.createCompletion(language, tokens);
+
+        if (completions.expandedPreviewOrError() != null)
+          showActionBarMessage(player, completions.expandedPreviewOrError());
+
+        return completions.suggestions();
+      } catch (ItemPredicateParseException e) {
+        showActionBarMessage(player, predicateHelper.createExceptionMessage(e));
+        return null;
+      }
+    }
 
     return List.of();
   }
@@ -171,24 +198,51 @@ public class SellGuiCommand implements CommandExecutor, TabCompleter {
   }
 
   private CommandResult handlePriceCatalogueCommand(CommandSender sender, String[] args) {
-    // TODO: Possibly handle predicate parsing for catalogue-filtering
-    if (args.length > 1)
-      return CommandResult.INVALID_ROOT_USAGE;
-
     if (!(sender instanceof Player player))
       return CommandResult.NOT_A_PLAYER;
 
-    // NOTE: Maybe support a trailing item-predicate to search through the price-list?
-    //       Would require to select a language then though; maybe just use the client-locale?
-    var catalogueContents = config.rootSection.sellGui.getRenderedSellableItems();
+    ItemPredicate predicate = null;
 
-    if (catalogueContents.isEmpty()) {
-      // TODO: If is filtering and catalog did contain items, change message to "yielded no results"
+    if (args.length > 1) {
+      try {
+        var tokens = predicateHelper.parseTokens(args, 1);
+        var language = itemTranslator.determineLanguage(player);
+        predicate = predicateHelper.parsePredicate(language, tokens);
+      } catch (ItemPredicateParseException e) {
+        config.rootSection.playerMessages.commandSellGuiPredicateError.sendMessage(
+          player,
+          config.rootSection.getBaseEnvironment()
+            .withStaticVariable("error_message", predicateHelper.createExceptionMessage(e))
+            .build()
+        );
+
+        return CommandResult.SUCCESS;
+      }
+    }
+
+    var catalogueContents = config.rootSection.sellGui.getRenderedSellableItems();
+    var filteredCatalogueContents = catalogueContents;
+
+    if (predicate != null) {
+      filteredCatalogueContents = new ArrayList<>();
+
+      for (var catalogueEntry : catalogueContents) {
+        if (predicate.test(catalogueEntry))
+          filteredCatalogueContents.add(catalogueEntry);
+      }
+    }
+
+    if (filteredCatalogueContents.isEmpty()) {
+      if (!catalogueContents.isEmpty()) {
+        player.sendMessage("§cYour query-predicate yielded no results!");
+        return CommandResult.SUCCESS;
+      }
+
       player.sendMessage("§cThere are no catalogue-contents to display yet!");
       return CommandResult.SUCCESS;
     }
 
-    displayManager.openFor(player, catalogueContents, null);
+    displayManager.openFor(player, filteredCatalogueContents, null);
     player.sendMessage("§aOpened catalogue!");
 
     return CommandResult.SUCCESS;
@@ -214,5 +268,9 @@ public class SellGuiCommand implements CommandExecutor, TabCompleter {
     player.sendMessage("§aYou successfully chose the language §2" + targetLanguage.normalizedName);
 
     return CommandResult.SUCCESS;
+  }
+
+  private void showActionBarMessage(Player player, String message) {
+    player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(message));
   }
 }
