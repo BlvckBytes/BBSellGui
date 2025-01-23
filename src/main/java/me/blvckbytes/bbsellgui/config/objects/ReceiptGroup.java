@@ -1,6 +1,7 @@
-package me.blvckbytes.bbsellgui.gui;
+package me.blvckbytes.bbsellgui.config.objects;
 
 import me.blvckbytes.bbsellgui.ItemNameTranslator;
+import me.blvckbytes.bbsellgui.gui.ReceiptItem;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.entity.Player;
@@ -10,9 +11,7 @@ import org.bukkit.inventory.meta.PotionMeta;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class ReceiptGroup {
 
@@ -29,8 +28,8 @@ public class ReceiptGroup {
   public final String itemName;
   public @Nullable String displayName;
   public List<String> loreLines;
-  public final Map<String, Integer> enchantments;
-  public final Map<String, EffectProperties> potionEffects;
+  public final List<EnchantmentNameLevel> enchantments;
+  public final List<EffectNameAmplifierTime> potionEffects;
   public int remainingDamage;
   public int maximumDamage;
 
@@ -47,8 +46,8 @@ public class ReceiptGroup {
 
     this.itemName = itemTranslator.getTypeTranslation(viewer.getPlayer(), item.getType());
 
-    this.enchantments = new HashMap<>();
-    this.potionEffects = new HashMap<>();
+    this.enchantments = new ArrayList<>();
+    this.potionEffects = new ArrayList<>();
     this.loreLines = new ArrayList<>();
 
     if (meta != null) {
@@ -66,7 +65,7 @@ public class ReceiptGroup {
 
       for (var enchantment : meta.getEnchants().keySet()) {
         var enchantmentName = itemTranslator.getEnchantmentTranslation(viewer, enchantment);
-        this.enchantments.put(enchantmentName, meta.getEnchantLevel(enchantment));
+        this.enchantments.add(new EnchantmentNameLevel(enchantmentName, meta.getEnchantLevel(enchantment)));
       }
 
       if (meta instanceof PotionMeta potionMeta) {
@@ -75,13 +74,13 @@ public class ReceiptGroup {
         if (baseType != null) {
           for (var effect : baseType.getPotionEffects()) {
             var effectName = itemTranslator.getEffectTranslation(viewer, effect.getType());
-            this.potionEffects.put(effectName, new EffectProperties(effect.getDuration(), effect.getAmplifier()));
+            this.potionEffects.add(new EffectNameAmplifierTime(effectName, effect.getDuration(), effect.getAmplifier()));
           }
         }
 
         for (var effect : potionMeta.getCustomEffects()) {
           var effectName = itemTranslator.getEffectTranslation(viewer, effect.getType());
-          this.potionEffects.put(effectName, new EffectProperties(effect.getDuration(), effect.getAmplifier()));
+          this.potionEffects.add(new EffectNameAmplifierTime(effectName, effect.getDuration(), effect.getAmplifier()));
         }
       }
 
@@ -91,7 +90,7 @@ public class ReceiptGroup {
       }
     }
 
-    this._valuePerSingleItem = receiptItem.valuePerSingleItem;;
+    this._valuePerSingleItem = receiptItem.valuePerSingleItem;
     this.valuePerSingleItem = economy.format(receiptItem.valuePerSingleItem);
     this.entries = new ArrayList<>();
     this.entries.add(new ReceiptGroupEntry(receiptItem.uiSlotIndex, receiptItem.item.getAmount()));

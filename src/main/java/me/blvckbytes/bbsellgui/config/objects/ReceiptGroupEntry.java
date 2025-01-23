@@ -1,12 +1,12 @@
-package me.blvckbytes.bbsellgui.gui;
+package me.blvckbytes.bbsellgui.config.objects;
 
 public class ReceiptGroupEntry {
 
-  public final int uiSlotIndex;
+  public final int uiSlot;
   public final int amount;
 
   public ReceiptGroupEntry(int uiSlotIndex, int amount) {
-    this.uiSlotIndex = uiSlotIndex;
+    this.uiSlot = uiSlotIndex + 1;
     this.amount = amount;
   }
 }

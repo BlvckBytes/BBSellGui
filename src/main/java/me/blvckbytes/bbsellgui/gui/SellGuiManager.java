@@ -3,6 +3,7 @@ package me.blvckbytes.bbsellgui.gui;
 import me.blvckbytes.bbconfigmapper.ScalarType;
 import me.blvckbytes.bbsellgui.ItemNameTranslator;
 import me.blvckbytes.bbsellgui.config.MainSection;
+import me.blvckbytes.bbsellgui.config.objects.ReceiptGroup;
 import me.blvckbytes.bukkitevaluable.ConfigKeeper;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.milkbowl.vault.economy.Economy;

@@ -1,13 +1,15 @@
-package me.blvckbytes.bbsellgui.gui;
+package me.blvckbytes.bbsellgui.config.objects;
 
 import java.util.StringJoiner;
 
-public class EffectProperties {
+public class EffectNameAmplifierTime {
 
+  public final String name;
   public final String duration;
   public final int amplifier;
 
-  public EffectProperties(int duration, int amplifier) {
+  public EffectNameAmplifierTime(String name, int duration, int amplifier) {
+    this.name = name;
     this.duration = formatDuration(duration);
     this.amplifier = amplifier;
   }
@@ -36,4 +38,5 @@ public class EffectProperties {
 
     return partJoiner.toString();
   }
+
 }
