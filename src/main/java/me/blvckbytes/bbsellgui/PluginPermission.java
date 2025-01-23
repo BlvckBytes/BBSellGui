@@ -7,6 +7,7 @@ public enum PluginPermission {
   RELOAD("command.reload-gui"),
   PRICE_CATALOGUE("command.price-catalogue"),
   CHECK_PRICE("command.check-price"),
+  RECEIPT_LANGUAGE("command.receipt-language"),
   ;
 
   public final String node;

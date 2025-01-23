@@ -1,7 +1,9 @@
 package me.blvckbytes.bbsellgui.gui;
 
+import me.blvckbytes.bbsellgui.ItemNameTranslator;
 import me.blvckbytes.bbsellgui.config.MainSection;
 import me.blvckbytes.bukkitevaluable.ConfigKeeper;
+import me.blvckbytes.item_predicate_parser.TranslationLanguageRegistry;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -21,11 +23,17 @@ import java.util.UUID;
 public class SellGuiManager implements Listener {
 
   private final Map<UUID, SellGuiInstance> instanceByHolderId;
+  private final ItemNameTranslator itemTranslator;
   private final ConfigKeeper<MainSection> config;
   private final Economy economy;
 
-  public SellGuiManager(ConfigKeeper<MainSection> config, Economy economy) {
+  public SellGuiManager(
+    ConfigKeeper<MainSection> config,
+    Economy economy,
+    ItemNameTranslator itemTranslator
+  ) {
     this.instanceByHolderId = new HashMap<>();
+    this.itemTranslator = itemTranslator;
     this.config = config;
     this.economy = economy;
   }

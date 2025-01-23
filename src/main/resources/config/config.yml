@@ -17,6 +17,9 @@ commands:
 economy:
   providerName: 'WorldEconomy'
 
+# One of https://github.com/BlvckBytes/ItemPredicateParser/blob/main/src/main/java/me/blvckbytes/item_predicate_parser/translation/TranslationLanguage.java
+defaultReceiptLanguage: GERMAN_DE
+
 sellGui:
   inventoryRowCount: 6
 

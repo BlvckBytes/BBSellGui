@@ -10,6 +10,7 @@ import me.blvckbytes.bbsellgui.listener.CommandSendListener;
 import me.blvckbytes.bukkitevaluable.CommandUpdater;
 import me.blvckbytes.bukkitevaluable.ConfigKeeper;
 import me.blvckbytes.bukkitevaluable.ConfigManager;
+import me.blvckbytes.item_predicate_parser.ItemPredicateParserPlugin;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -25,6 +26,7 @@ public class BBSellGuiPlugin extends JavaPlugin {
 
   private SellGuiManager sellGuiManager;
   private ItemDisplayManager displayManager;
+  private ItemNameTranslator itemTranslator;
 
   @Override
   public void onEnable() {
@@ -44,6 +46,12 @@ public class BBSellGuiPlugin extends JavaPlugin {
       else
         logger.warning("There are no sellable items defined yet!");
 
+      var parserPlugin = ItemPredicateParserPlugin.getInstance();
+
+      if (parserPlugin == null)
+        throw new IllegalStateException("Depending on ItemPredicateParser to be successfully loaded");
+
+      var languageRegistry = parserPlugin.getTranslationLanguageRegistry();
       var matchingProvider = locateEconomyProviderOrThrow(config);
 
       logger.info("Successfully located a matching economy-provider named \"" + matchingProvider.getPlugin().getName() + "\"");
@@ -55,7 +63,9 @@ public class BBSellGuiPlugin extends JavaPlugin {
       config.registerReloadListener(renderItems);
       renderItems.run();
 
-      sellGuiManager = new SellGuiManager(config, economy);
+      itemTranslator = new ItemNameTranslator(languageRegistry, this, config, logger);
+
+      sellGuiManager = new SellGuiManager(config, economy, itemTranslator);
       Bukkit.getServer().getPluginManager().registerEvents(sellGuiManager, this);
 
       var commandUpdater = new CommandUpdater(this);
@@ -63,7 +73,7 @@ public class BBSellGuiPlugin extends JavaPlugin {
       displayManager = new ItemDisplayManager(config);
       Bukkit.getServer().getPluginManager().registerEvents(displayManager, this);
 
-      var pipePredicateCommandExecutor = new SellGuiCommand(sellGuiManager, displayManager, economy, config, logger);
+      var pipePredicateCommandExecutor = new SellGuiCommand(sellGuiManager, displayManager, itemTranslator, economy, config, logger);
       var sellGuiCommand = Objects.requireNonNull(getCommand(SellGuiCommandSection.INITIAL_NAME));
 
       sellGuiCommand.setExecutor(pipePredicateCommandExecutor);
@@ -122,5 +132,8 @@ public class BBSellGuiPlugin extends JavaPlugin {
 
     if (sellGuiManager != null)
       sellGuiManager.onDisable();
+
+    if (itemTranslator != null)
+      itemTranslator.onDisable();
   }
 }

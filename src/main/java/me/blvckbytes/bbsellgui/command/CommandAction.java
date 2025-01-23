@@ -9,6 +9,7 @@ public enum CommandAction {
   RELOAD,
   PRICE_CATALOGUE,
   CHECK_PRICE,
+  RECEIPT_LANGUAGE,
   ;
 
   public static final EnumMatcher<CommandAction> matcher = new EnumMatcher<>(values());
@@ -18,6 +19,7 @@ public enum CommandAction {
       case RELOAD -> PluginPermission.RELOAD.hasPermission(permissible);
       case PRICE_CATALOGUE -> PluginPermission.PRICE_CATALOGUE.hasPermission(permissible);
       case CHECK_PRICE -> PluginPermission.CHECK_PRICE.hasPermission(permissible);
+      case RECEIPT_LANGUAGE -> PluginPermission.RECEIPT_LANGUAGE.hasPermission(permissible);
     };
   }
 }

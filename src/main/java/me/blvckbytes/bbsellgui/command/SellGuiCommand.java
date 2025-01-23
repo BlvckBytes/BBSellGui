@@ -1,10 +1,13 @@
 package me.blvckbytes.bbsellgui.command;
 
+import me.blvckbytes.bbsellgui.ItemNameTranslator;
 import me.blvckbytes.bbsellgui.PluginPermission;
 import me.blvckbytes.bbsellgui.config.MainSection;
 import me.blvckbytes.bbsellgui.display.ItemDisplayManager;
 import me.blvckbytes.bbsellgui.gui.SellGuiManager;
 import me.blvckbytes.bukkitevaluable.ConfigKeeper;
+import me.blvckbytes.item_predicate_parser.translation.TranslationLanguage;
+import me.blvckbytes.syllables_matcher.NormalizedConstant;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
@@ -23,6 +26,7 @@ public class SellGuiCommand implements CommandExecutor, TabCompleter {
 
   private final SellGuiManager guiManager;
   private final ItemDisplayManager displayManager;
+  private final ItemNameTranslator itemTranslator;
   private final ConfigKeeper<MainSection> config;
   private final Economy economy;
   private final Logger logger;
@@ -30,12 +34,14 @@ public class SellGuiCommand implements CommandExecutor, TabCompleter {
   public SellGuiCommand(
     SellGuiManager guiManager,
     ItemDisplayManager displayManager,
+    ItemNameTranslator itemTranslator,
     Economy economy,
     ConfigKeeper<MainSection> config,
     Logger logger
   ) {
     this.guiManager = guiManager;
     this.displayManager = displayManager;
+    this.itemTranslator = itemTranslator;
     this.economy = economy;
     this.config = config;
     this.logger = logger;
@@ -66,13 +72,14 @@ public class SellGuiCommand implements CommandExecutor, TabCompleter {
     var actionFilter = CommandAction.filterFor(sender);
     var normalizedAction = CommandAction.matcher.matchFirst(args[0], actionFilter);
 
-    var result = CommandResult.INVALID_USAGE;
+    var result = CommandResult.INVALID_ROOT_USAGE;
 
     if (normalizedAction != null) {
       switch (normalizedAction.constant) {
         case RELOAD -> result = handleReloadCommand(sender, args);
         case PRICE_CATALOGUE -> result = handlePriceCatalogueCommand(sender, args);
         case CHECK_PRICE -> result = handleCheckPriceCommand(sender, args);
+        case RECEIPT_LANGUAGE -> result = handleChooseLanguageCommand(sender, label, normalizedAction, args);
       }
     }
 
@@ -82,7 +89,7 @@ public class SellGuiCommand implements CommandExecutor, TabCompleter {
         return true;
       }
 
-      case INVALID_USAGE -> {
+      case INVALID_ROOT_USAGE -> {
         var availableActions = CommandAction.matcher.createCompletions(null, actionFilter);
 
         if (availableActions.isEmpty()) {
@@ -99,8 +106,20 @@ public class SellGuiCommand implements CommandExecutor, TabCompleter {
 
   @Override
   public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+    var actionFilter = CommandAction.filterFor(sender);
+
     if (args.length == 1)
-      return CommandAction.matcher.createCompletions(args[0], CommandAction.filterFor(sender));
+      return CommandAction.matcher.createCompletions(args[0], actionFilter);
+
+    var commandAction = CommandAction.matcher.matchFirst(args[0], actionFilter);
+
+    if (commandAction == null)
+      return List.of();
+
+    if (commandAction.constant == CommandAction.RECEIPT_LANGUAGE) {
+      if (args.length == 2)
+        return TranslationLanguage.matcher.createCompletions(args[1]);
+    }
 
     // TODO: Possibly handle predicate completion for catalogue-filtering
 
@@ -109,7 +128,7 @@ public class SellGuiCommand implements CommandExecutor, TabCompleter {
 
   private CommandResult handleReloadCommand(CommandSender sender, String[] args) {
     if (args.length > 1)
-      return CommandResult.INVALID_USAGE;
+      return CommandResult.INVALID_ROOT_USAGE;
 
     try {
       this.config.reload();
@@ -127,7 +146,7 @@ public class SellGuiCommand implements CommandExecutor, TabCompleter {
       return CommandResult.NOT_A_PLAYER;
 
     if (args.length > 1)
-      return CommandResult.INVALID_USAGE;
+      return CommandResult.INVALID_ROOT_USAGE;
 
     var targetItem = player.getInventory().getItemInMainHand();
 
@@ -137,15 +156,16 @@ public class SellGuiCommand implements CommandExecutor, TabCompleter {
     }
 
     var valuePerItem = guiManager.determineValuePerItem(targetItem);
+    var itemName = itemTranslator.getTranslation(player, targetItem);
 
     if (valuePerItem == null) {
-      player.sendMessage("§cThe item held in your main-hand cannot be sold using this UI!");
+      player.sendMessage("§cThe item \"" + itemName + "\" held in your main-hand cannot be sold using this UI!");
       return CommandResult.SUCCESS;
     }
 
     var totalValue = economy.format(valuePerItem * targetItem.getAmount());
 
-    player.sendMessage("§aThe item in your hand would yield a total of " + totalValue + "!");
+    player.sendMessage("§aThe item \"" + itemName + "\" in your hand would yield a total of " + totalValue + "!");
 
     return CommandResult.SUCCESS;
   }
@@ -153,7 +173,7 @@ public class SellGuiCommand implements CommandExecutor, TabCompleter {
   private CommandResult handlePriceCatalogueCommand(CommandSender sender, String[] args) {
     // TODO: Possibly handle predicate parsing for catalogue-filtering
     if (args.length > 1)
-      return CommandResult.INVALID_USAGE;
+      return CommandResult.INVALID_ROOT_USAGE;
 
     if (!(sender instanceof Player player))
       return CommandResult.NOT_A_PLAYER;
@@ -170,6 +190,28 @@ public class SellGuiCommand implements CommandExecutor, TabCompleter {
 
     displayManager.openFor(player, catalogueContents, null);
     player.sendMessage("§aOpened catalogue!");
+
+    return CommandResult.SUCCESS;
+  }
+
+  private CommandResult handleChooseLanguageCommand(CommandSender sender, String label, NormalizedConstant<CommandAction> normalizedAction, String[] args) {
+    if (!(sender instanceof Player player))
+      return CommandResult.NOT_A_PLAYER;
+
+    if (args.length != 2) {
+      player.sendMessage("§cUsage: /" + label + " " + normalizedAction.normalizedName + " <Language>");
+      return CommandResult.SUCCESS;
+    }
+
+    var targetLanguage = TranslationLanguage.matcher.matchFirst(args[1]);
+
+    if (targetLanguage == null) {
+      player.sendMessage("§cUnknown language §4" + args[1]);
+      return CommandResult.SUCCESS;
+    }
+
+    itemTranslator.chooseLanguage(player, targetLanguage.constant);
+    player.sendMessage("§aYou successfully chose the language §2" + targetLanguage.normalizedName);
 
     return CommandResult.SUCCESS;
   }
