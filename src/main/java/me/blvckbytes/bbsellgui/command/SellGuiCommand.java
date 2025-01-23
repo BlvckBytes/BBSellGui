@@ -183,7 +183,7 @@ public class SellGuiCommand implements CommandExecutor, TabCompleter {
     }
 
     var valuePerItem = guiManager.determineValuePerItem(targetItem);
-    var itemName = itemTranslator.getTranslation(player, targetItem);
+    var itemName = itemTranslator.getTypeTranslation(player, targetItem.getType());
 
     if (valuePerItem == null) {
       player.sendMessage("§cThe item \"" + itemName + "\" held in your main-hand cannot be sold using this UI!");

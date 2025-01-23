@@ -7,6 +7,8 @@ import me.blvckbytes.gpeee.interpreter.EvaluationEnvironmentBuilder;
 public class PlayerMessagesSection extends AConfigSection {
 
   public BukkitEvaluable commandSellGuiPredicateError;
+  public BukkitEvaluable sellableReceiptFormatter;
+  public BukkitEvaluable unsellableReceiptFormatter;
 
   public PlayerMessagesSection(EvaluationEnvironmentBuilder baseEnvironment) {
     super(baseEnvironment);

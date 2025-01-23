@@ -6,9 +6,11 @@ import me.blvckbytes.bukkitevaluable.ConfigKeeper;
 import me.blvckbytes.item_predicate_parser.TranslationLanguageRegistry;
 import me.blvckbytes.item_predicate_parser.translation.TranslationLanguage;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.potion.PotionEffectType;
 
 import java.io.*;
 import java.util.HashMap;
@@ -54,12 +56,32 @@ public class ItemNameTranslator {
     Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, this::persistDataIfApplicable, 0L, 20L * 60);
   }
 
-  public String getTranslation(Player player, ItemStack item) {
+  public String getEffectTranslation(Player player, PotionEffectType effect) {
     var translationRegistry = languageRegistry.getTranslationRegistry(determineLanguage(player));
-    var translationValue = translationRegistry.getTranslationBySingleton(item.getType());
+    var translationValue = translationRegistry.getTranslationBySingleton(effect);
 
     if (translationValue == null)
-      return item.getType().name();
+      return effect.getKey().getKey();
+
+    return translationValue;
+  }
+
+  public String getEnchantmentTranslation(Player player, Enchantment enchantment) {
+    var translationRegistry = languageRegistry.getTranslationRegistry(determineLanguage(player));
+    var translationValue = translationRegistry.getTranslationBySingleton(enchantment);
+
+    if (translationValue == null)
+      return enchantment.getKey().getKey();
+
+    return translationValue;
+  }
+
+  public String getTypeTranslation(Player player, Material type) {
+    var translationRegistry = languageRegistry.getTranslationRegistry(determineLanguage(player));
+    var translationValue = translationRegistry.getTranslationBySingleton(type);
+
+    if (translationValue == null)
+      return type.name();
 
     return translationValue;
   }

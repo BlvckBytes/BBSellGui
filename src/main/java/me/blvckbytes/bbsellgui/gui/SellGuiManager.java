@@ -1,9 +1,10 @@
 package me.blvckbytes.bbsellgui.gui;
 
+import me.blvckbytes.bbconfigmapper.ScalarType;
 import me.blvckbytes.bbsellgui.ItemNameTranslator;
 import me.blvckbytes.bbsellgui.config.MainSection;
 import me.blvckbytes.bukkitevaluable.ConfigKeeper;
-import me.blvckbytes.item_predicate_parser.TranslationLanguageRegistry;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -15,10 +16,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class SellGuiManager implements Listener {
 
@@ -108,6 +106,41 @@ public class SellGuiManager implements Listener {
     return true;
   }
 
+  private void sendDetailEnumerationMessage(Player viewer, List<ReceiptItem> items, boolean areItemsSellable) {
+    var receiptGroups = new ArrayList<ReceiptGroup>();
+
+    for (var item : items) {
+      var foundGroup = false;
+
+      for (var group : receiptGroups) {
+        if (!group.addMember(item))
+          continue;
+
+        foundGroup = true;
+        break;
+      }
+
+      if (!foundGroup)
+        receiptGroups.add(new ReceiptGroup(itemTranslator, economy, viewer, item));
+    }
+
+    for (var receiptGroup : receiptGroups)
+      receiptGroup.formatTotal();
+
+    var rawReceiptLine = (
+      areItemsSellable
+        ? config.rootSection.playerMessages.sellableReceiptFormatter
+        : config.rootSection.playerMessages.unsellableReceiptFormatter
+    ).asScalar(
+      ScalarType.STRING,
+      config.rootSection.getBaseEnvironment()
+        .withStaticVariable("receipt_groups", receiptGroups)
+        .build()
+    );
+
+    viewer.sendMessage(MiniMessage.miniMessage().deserialize(rawReceiptLine));
+  }
+
   private void onSessionEnd(Player player, Inventory inventory) {
     var instance = instanceByHolderId.remove(player.getUniqueId());
 
@@ -120,21 +153,23 @@ public class SellGuiManager implements Listener {
     var contents = instance.getContents();
 
     var receiptItems = new ArrayList<ReceiptItem>();
-    var unsellableItems = new ArrayList<ItemStack>();
+    var unsellableItems = new ArrayList<ReceiptItem>();
     double valueTotal = 0;
 
-    for (var content : contents) {
+    for (var slotIndex = 0; slotIndex < contents.length; ++slotIndex) {
+      var content = contents[slotIndex];
+
       if (content == null || content.getType() == Material.AIR || content.getAmount() <= 0)
         continue;
 
       var contentValuePerItem = determineValuePerItem(content);
 
       if (contentValuePerItem == null) {
-        unsellableItems.add(content);
+        unsellableItems.add(new ReceiptItem(content, slotIndex, 0));
         continue;
       }
 
-      var receipt = new ReceiptItem(content, contentValuePerItem);
+      var receipt = new ReceiptItem(content, slotIndex, contentValuePerItem);
 
       receiptItems.add(receipt);
       valueTotal += receipt.valueTotal;
@@ -149,10 +184,9 @@ public class SellGuiManager implements Listener {
 
     if (!unsellableItems.isEmpty()) {
       for (var unsoldItem : unsellableItems)
-        didDropAny |= handBackOrDropAtPlayer(player, unsoldItem);
+        didDropAny |= handBackOrDropAtPlayer(player, unsoldItem.item);
 
-      // TODO: Enumerate in a detailed manner
-      player.sendMessage("§cHanded back " + unsellableItems.size() + " unsellable stack(s)");
+      sendDetailEnumerationMessage(player, unsellableItems, false);
     }
 
     if (!receiptItems.isEmpty()) {
@@ -162,8 +196,7 @@ public class SellGuiManager implements Listener {
 
         player.sendMessage("§cAn error occurred while trying to carry out the transaction and handed all items back; error: §4" + depositResponse.errorMessage);
       } else {
-        // TODO: Enumerate in a detailed manner
-        player.sendMessage("§aYou successfully sold " + receiptItems.size() + " stacks and earned a total of " + economy.format(valueTotal));
+        sendDetailEnumerationMessage(player, unsellableItems, true);
         // TODO: Persistently log receipts for each transaction, with a config-option to disable
       }
     }
