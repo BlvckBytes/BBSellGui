@@ -1,7 +1,6 @@
 package me.blvckbytes.bbsellgui.command;
 
 import me.blvckbytes.bbsellgui.ItemNameTranslator;
-import me.blvckbytes.bbsellgui.PluginPermission;
 import me.blvckbytes.bbsellgui.config.MainSection;
 import me.blvckbytes.bbsellgui.display.ItemDisplayManager;
 import me.blvckbytes.bbsellgui.gui.SellGuiManager;
@@ -64,7 +63,7 @@ public class SellGuiCommand implements CommandExecutor, TabCompleter {
         return true;
       }
 
-      if (!PluginPermission.ACCESS_GUI.hasPermission(player)) {
+      if (!CommandPermission.ACCESS_GUI.hasPermission(player)) {
         config.rootSection.playerMessages.commandSellGuiMissingPermissionSellGui.sendMessage(sender, config.rootSection.builtBaseEnvironment);
         return true;
       }

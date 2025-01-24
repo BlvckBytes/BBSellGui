@@ -1,6 +1,6 @@
 package me.blvckbytes.bbsellgui.listener;
 
-import me.blvckbytes.bbsellgui.PluginPermission;
+import me.blvckbytes.bbsellgui.command.CommandPermission;
 import me.blvckbytes.bbsellgui.config.MainSection;
 import me.blvckbytes.bukkitevaluable.ConfigKeeper;
 import org.bukkit.command.Command;
@@ -25,7 +25,7 @@ public class CommandSendListener implements Listener {
 
     pluginCommands.put(
       plugin.getCommand(config.rootSection.commands.sellGui.evaluatedName),
-      PluginPermission::canUseSellGuiCommand
+      CommandPermission::canUseSellGuiCommand
     );
   }
 
