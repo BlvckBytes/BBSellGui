@@ -65,7 +65,7 @@ public class BBSellGuiPlugin extends JavaPlugin {
 
       itemTranslator = new ItemNameTranslator(languageRegistry, this, config, logger);
 
-      sellGuiManager = new SellGuiManager(config, economy, itemTranslator);
+      sellGuiManager = new SellGuiManager(config, logger, economy, itemTranslator);
       Bukkit.getServer().getPluginManager().registerEvents(sellGuiManager, this);
 
       var commandUpdater = new CommandUpdater(this);

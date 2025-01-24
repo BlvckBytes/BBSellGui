@@ -18,22 +18,27 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class SellGuiManager implements Listener {
 
   private final Map<UUID, SellGuiInstance> instanceByHolderId;
   private final ItemNameTranslator itemTranslator;
   private final ConfigKeeper<MainSection> config;
+  private final Logger logger;
   private final Economy economy;
 
   public SellGuiManager(
     ConfigKeeper<MainSection> config,
+    Logger logger,
     Economy economy,
     ItemNameTranslator itemTranslator
   ) {
     this.instanceByHolderId = new HashMap<>();
     this.itemTranslator = itemTranslator;
     this.config = config;
+    this.logger = logger;
     this.economy = economy;
   }
 
@@ -77,7 +82,7 @@ public class SellGuiManager implements Listener {
       iterator.remove();
 
       instance.holder.closeInventory();
-      instance.holder.sendMessage("§cDue to the plugin being about to get disabled, your items have been handed back to you!");
+      config.rootSection.playerMessages.pluginDisablingHandingBackItems.sendMessage(instance.holder, config.rootSection.builtBaseEnvironment);
     }
   }
 
@@ -139,7 +144,12 @@ public class SellGuiManager implements Listener {
         .build()
     );
 
-    viewer.sendMessage(MiniMessage.miniMessage().deserialize(rawReceiptLine));
+    try {
+      viewer.sendMessage(MiniMessage.miniMessage().deserialize(rawReceiptLine));
+    } catch (Exception e) {
+      logger.log(Level.SEVERE, "The Mini-Message parser is a piece of s#!t.", e);
+      viewer.sendMessage("§cAn error occurred while trying to generate your receipt-message; please report this to an administrator.");
+    }
   }
 
   private void onSessionEnd(Player player, Inventory inventory) {
@@ -195,19 +205,24 @@ public class SellGuiManager implements Listener {
         for (var receiptItem : receiptItems)
           didDropAny |= handBackOrDropAtPlayer(player, receiptItem.item);
 
-        player.sendMessage("§cAn error occurred while trying to carry out the transaction and handed all items back; error: §4" + depositResponse.errorMessage);
+        config.rootSection.playerMessages.economyErrorHandingBackItems.sendMessage(
+          player,
+          config.rootSection.getBaseEnvironment()
+            .withStaticVariable("message", depositResponse.errorMessage)
+            .build()
+        );
       } else {
-        sendDetailEnumerationMessage(player, unsellableItems, true);
+        sendDetailEnumerationMessage(player, receiptItems, true);
         // TODO: Persistently log receipts for each transaction, with a config-option to disable
       }
     }
 
     else {
       if (unsellableItems.isEmpty())
-        player.sendMessage("§aCarried out no actions since the Sell-GUI was empty");
+        config.rootSection.playerMessages.sellGuiClosedEmpty.sendMessage(player, config.rootSection.builtBaseEnvironment);
     }
 
     if (didDropAny)
-      player.sendMessage("§aSome handed-back items did not fit into your inventory and have been dropped at your location!");
+      config.rootSection.playerMessages.someItemsWereDropped.sendMessage(player, config.rootSection.builtBaseEnvironment);
   }
 }

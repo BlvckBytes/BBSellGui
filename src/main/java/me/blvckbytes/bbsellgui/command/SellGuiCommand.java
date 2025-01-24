@@ -60,21 +60,21 @@ public class SellGuiCommand implements CommandExecutor, TabCompleter {
   public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
     if (args.length == 0) {
       if (!(sender instanceof Player player)) {
-        sender.sendMessage("§cThis command is only accessible to players!");
+        config.rootSection.playerMessages.commandSellGuiPlayerOnly.sendMessage(sender, config.rootSection.builtBaseEnvironment);
         return true;
       }
 
       if (!PluginPermission.ACCESS_GUI.hasPermission(player)) {
-        sender.sendMessage("§cYou do not have permission to access the Sell-GUI.");
+        config.rootSection.playerMessages.commandSellGuiMissingPermissionSellGui.sendMessage(sender, config.rootSection.builtBaseEnvironment);
         return true;
       }
 
       if (!guiManager.createAndOpenForPlayer(player)) {
-        sender.sendMessage("§cYou seem to already be in an active session; please report this to a team-member!");
+        config.rootSection.playerMessages.commandSellGuiActiveSession.sendMessage(sender, config.rootSection.builtBaseEnvironment);
         return true;
       }
 
-      sender.sendMessage("§aPlease move the items you seek to sell into the Sell-GUI!");
+      config.rootSection.playerMessages.commandSellGuiOpening.sendMessage(sender, config.rootSection.builtBaseEnvironment);
       return true;
     }
 
@@ -94,7 +94,7 @@ public class SellGuiCommand implements CommandExecutor, TabCompleter {
 
     switch (result) {
       case NOT_A_PLAYER -> {
-        sender.sendMessage("§cThis command is only accessible to players!");
+        config.rootSection.playerMessages.commandSellGuiPlayerOnly.sendMessage(sender, config.rootSection.builtBaseEnvironment);
         return true;
       }
 
@@ -102,11 +102,22 @@ public class SellGuiCommand implements CommandExecutor, TabCompleter {
         var availableActions = CommandAction.matcher.createCompletions(null, actionFilter);
 
         if (availableActions.isEmpty()) {
-          sender.sendMessage("§cUsage: /" + label);
+          config.rootSection.playerMessages.commandSellGuiUsageNoActions.sendMessage(
+            sender,
+            config.rootSection.getBaseEnvironment()
+              .withStaticVariable("label", label)
+              .build()
+          );
           return true;
         }
 
-        sender.sendMessage("§cUsage: /" + label + " [" + String.join(", ", availableActions) + "]");
+        config.rootSection.playerMessages.commandSellGuiUsage.sendMessage(
+          sender,
+          config.rootSection.getBaseEnvironment()
+            .withStaticVariable("label", label)
+            .withStaticVariable("actions", availableActions)
+            .build()
+        );
       }
     }
 
@@ -159,10 +170,10 @@ public class SellGuiCommand implements CommandExecutor, TabCompleter {
 
     try {
       this.config.reload();
-      sender.sendMessage("§aConfig successfully reloaded");
+      config.rootSection.playerMessages.commandSellGuiReloadSuccess.sendMessage(sender, config.rootSection.builtBaseEnvironment);
     } catch (Exception e) {
       logger.log(Level.SEVERE, "An error occurred while trying to reload the config", e);
-      sender.sendMessage("§cAn error occurred while trying to reload the config; check console!");
+      config.rootSection.playerMessages.commandSellGuiReloadError.sendMessage(sender, config.rootSection.builtBaseEnvironment);
     }
 
     return CommandResult.SUCCESS;
@@ -178,7 +189,7 @@ public class SellGuiCommand implements CommandExecutor, TabCompleter {
     var targetItem = player.getInventory().getItemInMainHand();
 
     if (targetItem.getType() == Material.AIR) {
-      player.sendMessage("§cYou are not holding any item in your main-hand!");
+      config.rootSection.playerMessages.commandSellGuiNoItemInMainHand.sendMessage(player, config.rootSection.builtBaseEnvironment);
       return CommandResult.SUCCESS;
     }
 
@@ -186,13 +197,24 @@ public class SellGuiCommand implements CommandExecutor, TabCompleter {
     var itemName = itemTranslator.getTypeTranslation(player, targetItem.getType());
 
     if (valuePerItem == null) {
-      player.sendMessage("§cThe item \"" + itemName + "\" held in your main-hand cannot be sold using this UI!");
+      config.rootSection.playerMessages.commandSellGuiMainHandUnsellable.sendMessage(
+        player,
+        config.rootSection.getBaseEnvironment()
+          .withStaticVariable("item_name", itemName)
+          .build()
+      );
       return CommandResult.SUCCESS;
     }
 
     var totalValue = economy.format(valuePerItem * targetItem.getAmount());
 
-    player.sendMessage("§aThe item \"" + itemName + "\" in your hand would yield a total of " + totalValue + "!");
+    config.rootSection.playerMessages.commandSellGuiMainHandTotalValue.sendMessage(
+      player,
+      config.rootSection.getBaseEnvironment()
+        .withStaticVariable("item_name", itemName)
+        .withStaticVariable("total_value", totalValue)
+        .build()
+    );
 
     return CommandResult.SUCCESS;
   }
@@ -234,16 +256,16 @@ public class SellGuiCommand implements CommandExecutor, TabCompleter {
 
     if (filteredCatalogueContents.isEmpty()) {
       if (!catalogueContents.isEmpty()) {
-        player.sendMessage("§cYour query-predicate yielded no results!");
+        config.rootSection.playerMessages.commandSellGuiCatalogueFilterEmpty.sendMessage(player, config.rootSection.builtBaseEnvironment);
         return CommandResult.SUCCESS;
       }
 
-      player.sendMessage("§cThere are no catalogue-contents to display yet!");
+      config.rootSection.playerMessages.commandSellGuiCatalogueEmpty.sendMessage(player, config.rootSection.builtBaseEnvironment);
       return CommandResult.SUCCESS;
     }
 
     displayManager.openFor(player, filteredCatalogueContents, null);
-    player.sendMessage("§aOpened catalogue!");
+    config.rootSection.playerMessages.commandSellGuiCatalogueOpened.sendMessage(player, config.rootSection.builtBaseEnvironment);
 
     return CommandResult.SUCCESS;
   }
@@ -253,19 +275,39 @@ public class SellGuiCommand implements CommandExecutor, TabCompleter {
       return CommandResult.NOT_A_PLAYER;
 
     if (args.length != 2) {
-      player.sendMessage("§cUsage: /" + label + " " + normalizedAction.normalizedName + " <Language>");
+      config.rootSection.playerMessages.commandSellGuiLanguageUsage.sendMessage(
+        player,
+        config.rootSection.getBaseEnvironment()
+          .withStaticVariable("label", label)
+          .withStaticVariable("action", normalizedAction.normalizedName)
+          .withStaticVariable("languages", TranslationLanguage.matcher.createCompletions(null))
+          .build()
+      );
+
       return CommandResult.SUCCESS;
     }
 
     var targetLanguage = TranslationLanguage.matcher.matchFirst(args[1]);
 
     if (targetLanguage == null) {
-      player.sendMessage("§cUnknown language §4" + args[1]);
+      config.rootSection.playerMessages.commandSellGuiLanguageUnknown.sendMessage(
+        player,
+        config.rootSection.getBaseEnvironment()
+          .withStaticVariable("input", args[1])
+          .build()
+      );
+
       return CommandResult.SUCCESS;
     }
 
     itemTranslator.chooseLanguage(player, targetLanguage.constant);
-    player.sendMessage("§aYou successfully chose the language §2" + targetLanguage.normalizedName);
+
+    config.rootSection.playerMessages.commandSellGuiLanguageChosen.sendMessage(
+      player,
+      config.rootSection.getBaseEnvironment()
+        .withStaticVariable("language", targetLanguage.normalizedName)
+        .build()
+    );
 
     return CommandResult.SUCCESS;
   }

@@ -25,7 +25,7 @@ sellGui:
 
   # - player_name: String
   # - player_display_name: String
-  inventoryTitle$: '"&3Sell-GUI von &9" & player_display_name'
+  inventoryTitle$: '"&3Verkaufsmenü &9" & player_display_name'
 
   # Processed top-down; define higher-prioritized matchers first!
   sellableItems:
@@ -81,12 +81,42 @@ catalogueGui:
     name: ' '
 
 playerMessages:
-  commandSellGuiPredicateError$: '"&cFehlerhaftes Prädikat: " & error_message'
+  commandSellGuiPredicateError$: 'lut["prefix"] & "&cFehlerhaftes Prädikat: " & error_message'
+  commandSellGuiPlayerOnly$: 'lut["prefix"] & "&cDieser Befehl steht nur Spielern zur Verfügung!"'
+  commandSellGuiMissingPermissionSellGui$: 'lut["prefix"] & "&cDir fehlen die nötigen Rechte um das Verkaufsmenü zu benutzen!"'
+  commandSellGuiActiveSession$: 'lut["prefix"] & "&cDu befindest dich scheinbar bereits in einer aktiven GUI-Sitzung; bitte melde diesen Vorfall einem Team-Mitglied!"'
+  commandSellGuiOpening$: 'lut["prefix"] & "&7Bitte bewege die &bzu verkaufenden Items &7in das &bobere Inventar&7!"'
+  # - label: String
+  commandSellGuiUsageNoActions$: 'lut["prefix"] & "&cVerwendung: /" & label'
+  # - label: String
+  # - actions: List<String>
+  commandSellGuiUsage$: 'lut["prefix"] & "&cVerwendung: /" & label & " [" & iter_cat(actions, (action) => "&4" & action, "&c, ") & "&c]"'
+  commandSellGuiReloadSuccess$: 'lut["prefix"] & "&7Das Plugin wurde erfolgreich &bneu geladen&7."'
+  commandSellGuiReloadError$: 'lut["prefix"] & "&cEin Fehler trat während des Ladeprozesses auf. Überprüfe die Konsole!"'
+  commandSellGuiNoItemInMainHand$: 'lut["prefix"] & "&cDu hältst aktuell kein Item in deiner Haupt-Hand!"'
+  commandSellGuiMainHandUnsellable$: 'lut["prefix"] & "&cDas Item &4" & item_name & " &cin deiner Haupt-Hand kann nicht durch dieses GUI verkauft werden!"'
+  commandSellGuiMainHandTotalValue$: 'lut["prefix"] & "&7Das Item &b" & item_name & " &7in deiner Haupt-Hand würde einen Gesamterlös von &b" & total_value & " &7erbringen!"'
+  commandSellGuiCatalogueEmpty$: 'lut["prefix"] & "&cEs existieren noch keine Einträge im Preiskatalog!"'
+  commandSellGuiCatalogueFilterEmpty$: 'lut["prefix"] & "&cDer gewählte Filter erzielte keine Ergebnisse!"'
+  commandSellGuiCatalogueOpened$: 'lut["prefix"] & "&7Der &bPreiskatalog &7wurde geöffnet."'
+  # - label: String
+  # - action: String
+  # - languages: List<String>
+  commandSellGuiLanguageUsage$: 'lut["prefix"] & "&cBenutze: /" & label & " " & action & " [" & iter_cat(languages, (language) => "&4" & language, "&c, ") & "&c]"'
+  # - input: String
+  commandSellGuiLanguageUnknown$: 'lut["prefix"] & "&cDie Sprache &4" & input & " &cist keine gültige Wahl!"'
+  # - language: String
+  commandSellGuiLanguageChosen$: 'lut["prefix"] & "&7Die Sprache &b" & language & " &7wurde erfolgreich ausgewählt."'
+  pluginDisablingHandingBackItems$: 'lut["prefix"] & "&cDa das Plugin kurz vor einer Deaktivierung steht, wurden deine Items zurückerstattet!"'
+  # - message: String
+  economyErrorHandingBackItems$: 'lut["prefix"] & "&cAufgrund eines internen Fehlers bei der Transaktion wurden deine Items zurückerstattet! Ursache: &4" & message'
+  sellGuiClosedEmpty$: 'lut["prefix"] & "&7Es wurde &ckeine Aktion &7unternommen, da du das Verkaufsmenü im &cleeren Zustand &7geschlossen hast!"'
+  someItemsWereDropped$: 'lut["prefix"] & "&7Nicht alle &czurückgehändigten Items &7fanden Platz in deinem Inventar, weshalb ein Teil davon &cgedroppt &7wurde!"'
   sellableReceiptFormatter$: |
-    "<green>Sold items: " & iter_cat(receipt_groups, (receipt_group) => (
-      "<green>" & receipt_group.amountTotal & "x <dark_gray>(" & iter_cat(receipt_group.entries, (group_entry) => (
+    lut["miniMessagePrefix"] & "<gray>Verkaufte Items: " & iter_cat(receipt_groups, (receipt_group) => (
+      "<aqua>" & receipt_group.amountTotal & "x <dark_gray>(" & iter_cat(receipt_group.entries, (group_entry) => (
         "<gray><hover:show_text:'<gray>Slot " & group_entry.uiSlot & "'>" & group_entry.amount & "</hover>"
-      ), "<dark_gray>, ") & "<dark_gray>) <green>" & (
+      ), "<dark_gray>, ") & "<dark_gray>) <aqua>" & (
         "<hover:show_text:'" & (
           iter_cat(filter(flatten(
             if receipt_group.displayName == null then null else receipt_group.displayName & "<reset>",
@@ -94,15 +124,15 @@ playerMessages:
             iter_cat(receipt_group.enchantments, (it) => it.name & " " & it.level, "<br>"),
             iter_cat(receipt_group.potionEffects, (it) => it.name & " " & it.amplifier & " " & it.duration, "<br>"),
             if receipt_group.maximumDamage == 0 then null else "Durability: " & receipt_group.remainingDamage & "/" & receipt_group.maximumDamage
-          ), (it) => it != null or it != ""), (it) => it, "<br><br>", "<red>No metadata", true)
+          ), (it) => it != null or it != ""), (it) => it, "<br><br>", "<red>Keine Metadaten vorhanden", true)
         ) & "'>" & receipt_group.itemName & "</hover>"
-      ) & " " & receipt_group.valuePerSingleItem & "/1 => " & receipt_group.valueTotal
-    ), "<dark_gray>, ")
+      ) & " <gray>zu <aqua>" & receipt_group.valuePerSingleItem & "/1 <gray>=> <aqua>" & receipt_group.valueTotal
+    ), " <dark_gray>| ")
   unsellableReceiptFormatter$: |
-    "<red>Unsold items: " & iter_cat(receipt_groups, (receipt_group) => (
-      "<green>" & receipt_group.amountTotal & "x <dark_gray>(" & iter_cat(receipt_group.entries, (group_entry) => (
+    lut["miniMessagePrefix"] & "<red>Unverkaufbare Items: " & iter_cat(receipt_groups, (receipt_group) => (
+      "<aqua>" & receipt_group.amountTotal & "x <dark_gray>(" & iter_cat(receipt_group.entries, (group_entry) => (
         "<gray><u><hover:show_text:'<gray>Slot " & group_entry.uiSlot & "'>" & group_entry.amount & "</hover></u>"
-      ), "<dark_gray>, ") & "<dark_gray>) <green>" & (
+      ), "<dark_gray>, ") & "<dark_gray>) <aqua>" & (
         "<u><hover:show_text:'" & (
           iter_cat(filter(flatten(
             if receipt_group.displayName == null then null else receipt_group.displayName & "<reset>",
@@ -110,7 +140,11 @@ playerMessages:
             iter_cat(receipt_group.enchantments, (it) => it.name & " " & it.level, "<br>"),
             iter_cat(receipt_group.potionEffects, (it) => it.name & " " & it.amplifier & " " & it.duration, "<br>"),
             if receipt_group.maximumDamage == 0 then null else "Durability: " & receipt_group.remainingDamage & "/" & receipt_group.maximumDamage
-          ), (it) => it != null or it != ""), (it) => it, "<br><br>", "<red>No metadata", true)
+          ), (it) => it != null or it != ""), (it) => it, "<br><br>", "<red>Keine Metadaten vorhanden", true)
         ) & "'>" & receipt_group.itemName & "</hover></u>"
       )
-    ), "<dark_gray>, ")
+    ), " <dark_gray>| ")
+
+lut:
+  prefix: '&8[&3SellGUI&8] '
+  miniMessagePrefix: '<dark_gray>[<dark_aqua>SellGUI<dark_gray>] '

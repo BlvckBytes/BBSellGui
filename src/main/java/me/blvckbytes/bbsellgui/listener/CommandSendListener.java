@@ -25,7 +25,7 @@ public class CommandSendListener implements Listener {
 
     pluginCommands.put(
       plugin.getCommand(config.rootSection.commands.sellGui.evaluatedName),
-      PluginPermission.ACCESS_GUI::hasPermission
+      PluginPermission::canUseSellGuiCommand
     );
   }
 

@@ -10,10 +10,21 @@ public enum PluginPermission {
   RECEIPT_LANGUAGE("command.receipt-language"),
   ;
 
+  private static final PluginPermission[] values = values();
+
   public final String node;
 
   PluginPermission(String partialNode) {
     this.node = "bbsellgui." + partialNode;
+  }
+
+  public static boolean canUseSellGuiCommand(Permissible permissible) {
+    for (var value : values) {
+      if (value.hasPermission(permissible))
+        return true;
+    }
+
+    return false;
   }
 
   public boolean hasPermission(Permissible permissible) {

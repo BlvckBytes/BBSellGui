@@ -8,4 +8,3 @@ softdepend: [Essentials, WorldEconomy]
 commands:
   sellgui:
     description: 'Access the batch-selling GUI'
-    permission: 'bbsellgui.access-gui'
