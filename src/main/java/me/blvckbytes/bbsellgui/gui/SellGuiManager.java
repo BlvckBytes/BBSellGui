@@ -163,8 +163,9 @@ public class SellGuiManager implements Listener {
 
     var contents = instance.getContents();
 
-    var receiptItems = new ArrayList<ReceiptItem>();
+    var sellableItems = new ArrayList<ReceiptItem>();
     var unsellableItems = new ArrayList<ReceiptItem>();
+
     double valueTotal = 0;
 
     for (var slotIndex = 0; slotIndex < contents.length; ++slotIndex) {
@@ -182,14 +183,12 @@ public class SellGuiManager implements Listener {
 
       var receipt = new ReceiptItem(content, slotIndex, contentValuePerItem);
 
-      receiptItems.add(receipt);
+      sellableItems.add(receipt);
       valueTotal += receipt.valueTotal;
     }
 
     // Better safe than sorry, :^)
     instance.clear();
-
-    var depositResponse = economy.depositPlayer(player, player.getWorld().getName(), valueTotal);
 
     var didDropAny = false;
 
@@ -200,9 +199,11 @@ public class SellGuiManager implements Listener {
       sendDetailEnumerationMessage(player, unsellableItems, false);
     }
 
-    if (!receiptItems.isEmpty()) {
+    if (!sellableItems.isEmpty()) {
+      var depositResponse = economy.depositPlayer(player, player.getWorld().getName(), valueTotal);
+
       if (!depositResponse.transactionSuccess()) {
-        for (var receiptItem : receiptItems)
+        for (var receiptItem : sellableItems)
           didDropAny |= handBackOrDropAtPlayer(player, receiptItem.item);
 
         config.rootSection.playerMessages.economyErrorHandingBackItems.sendMessage(
@@ -212,7 +213,7 @@ public class SellGuiManager implements Listener {
             .build()
         );
       } else {
-        sendDetailEnumerationMessage(player, receiptItems, true);
+        sendDetailEnumerationMessage(player, sellableItems, true);
         // TODO: Persistently log receipts for each transaction, with a config-option to disable
       }
     }
