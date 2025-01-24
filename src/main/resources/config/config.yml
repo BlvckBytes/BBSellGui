@@ -113,7 +113,7 @@ playerMessages:
   sellGuiClosedEmpty$: 'lut["prefix"] & "&7Es wurde &ckeine Aktion &7unternommen, da du das Verkaufsmenü im &cleeren Zustand &7geschlossen hast!"'
   someItemsWereDropped$: 'lut["prefix"] & "&7Nicht alle &czurückgehändigten Items &7fanden Platz in deinem Inventar, weshalb ein Teil davon &cgedroppt &7wurde!"'
   sellableReceiptFormatter$: |
-    lut["miniMessagePrefix"] & "<gray>Verkaufte Items: " & iter_cat(receipt_groups, (receipt_group) => (
+    lut["miniMessagePrefix"] & "<green>Verkaufte Items: " & iter_cat(receipt_groups, (receipt_group) => (
       "<aqua>" & receipt_group.amountTotal & "x <dark_gray>(" & iter_cat(receipt_group.entries, (group_entry) => (
         "<gray><hover:show_text:'<gray>Slot " & group_entry.uiSlot & "'>" & group_entry.amount & "</hover>"
       ), "<dark_gray>, ") & "<dark_gray>) <aqua>" & (
@@ -124,7 +124,7 @@ playerMessages:
             iter_cat(receipt_group.enchantments, (it) => it.name & " " & it.level, "<br>"),
             iter_cat(receipt_group.potionEffects, (it) => it.name & " " & it.amplifier & " " & it.duration, "<br>"),
             if receipt_group.maximumDamage == 0 then null else "Durability: " & receipt_group.remainingDamage & "/" & receipt_group.maximumDamage
-          ), (it) => it != null or it != ""), (it) => it, "<br><br>", "<red>Keine Metadaten vorhanden", true)
+          ), (it) => it != null and it != ""), (it) => it, "<br><br>", "<red>Keine Metadaten vorhanden", true)
         ) & "'>" & receipt_group.itemName & "</hover>"
       ) & " <gray>zu <aqua>" & receipt_group.valuePerSingleItem & "/1 <gray>=> <aqua>" & receipt_group.valueTotal
     ), " <dark_gray>| ")
@@ -140,7 +140,7 @@ playerMessages:
             iter_cat(receipt_group.enchantments, (it) => it.name & " " & it.level, "<br>"),
             iter_cat(receipt_group.potionEffects, (it) => it.name & " " & it.amplifier & " " & it.duration, "<br>"),
             if receipt_group.maximumDamage == 0 then null else "Durability: " & receipt_group.remainingDamage & "/" & receipt_group.maximumDamage
-          ), (it) => it != null or it != ""), (it) => it, "<br><br>", "<red>Keine Metadaten vorhanden", true)
+          ), (it) => it != null and it != ""), (it) => it, "<br><br>", "<red>Keine Metadaten vorhanden", true)
         ) & "'>" & receipt_group.itemName & "</hover></u>"
       )
     ), " <dark_gray>| ")

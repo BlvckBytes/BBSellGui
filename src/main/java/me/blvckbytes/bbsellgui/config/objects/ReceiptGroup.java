@@ -41,6 +41,7 @@ public class ReceiptGroup {
     this.economy = economy;
     this.item = receiptItem.item;
     this.amountTotal = item.getAmount();
+    this._valueTotal = receiptItem.valueTotal;
 
     var meta = receiptItem.item.getItemMeta();
 
