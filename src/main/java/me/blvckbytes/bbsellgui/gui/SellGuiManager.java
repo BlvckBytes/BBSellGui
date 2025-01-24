@@ -4,7 +4,10 @@ import me.blvckbytes.bbconfigmapper.ScalarType;
 import me.blvckbytes.bbsellgui.ItemNameTranslator;
 import me.blvckbytes.bbsellgui.config.MainSection;
 import me.blvckbytes.bbsellgui.config.objects.ReceiptGroup;
+import me.blvckbytes.bukkitevaluable.BukkitEvaluable;
 import me.blvckbytes.bukkitevaluable.ConfigKeeper;
+import me.blvckbytes.gpeee.interpreter.EvaluationEnvironmentBuilder;
+import me.blvckbytes.gpeee.interpreter.IEvaluationEnvironment;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Material;
@@ -112,7 +115,11 @@ public class SellGuiManager implements Listener {
     return true;
   }
 
-  private void sendDetailEnumerationMessage(Player viewer, List<ReceiptItem> items, boolean areItemsSellable) {
+  private IEvaluationEnvironment sendDetailEnumerationMessage(
+    Player viewer, List<ReceiptItem> items,
+    EvaluationEnvironmentBuilder dataEnvironmentBuilder,
+    boolean areItemsSellable
+  ) {
     var receiptGroups = new ArrayList<ReceiptGroup>();
 
     for (var item : items) {
@@ -133,16 +140,17 @@ public class SellGuiManager implements Listener {
     for (var receiptGroup : receiptGroups)
       receiptGroup.formatTotal();
 
-    var rawReceiptLine = (
-      areItemsSellable
-        ? config.rootSection.playerMessages.sellableReceiptFormatter
-        : config.rootSection.playerMessages.unsellableReceiptFormatter
-    ).asScalar(
-      ScalarType.STRING,
-      config.rootSection.getBaseEnvironment()
-        .withStaticVariable("receipt_groups", receiptGroups)
-        .build()
-    );
+    BukkitEvaluable receiptMessage;
+
+    if (areItemsSellable)
+      receiptMessage = config.rootSection.playerMessages.sellableReceiptFormatter;
+    else
+      receiptMessage = config.rootSection.playerMessages.unsellableReceiptFormatter;
+
+    dataEnvironmentBuilder.withStaticVariable("receipt_groups", receiptGroups);
+
+    var messageEnvironment = dataEnvironmentBuilder.build();
+    var rawReceiptLine = receiptMessage.asScalar(ScalarType.STRING, messageEnvironment);
 
     try {
       viewer.sendMessage(MiniMessage.miniMessage().deserialize(rawReceiptLine));
@@ -150,6 +158,8 @@ public class SellGuiManager implements Listener {
       logger.log(Level.SEVERE, "The Mini-Message parser is a piece of s#!t.", e);
       viewer.sendMessage("§cAn error occurred while trying to generate your receipt-message; please report this to an administrator.");
     }
+
+    return messageEnvironment;
   }
 
   private void onSessionEnd(Player player, Inventory inventory) {
@@ -167,6 +177,8 @@ public class SellGuiManager implements Listener {
     var unsellableItems = new ArrayList<ReceiptItem>();
 
     double valueTotal = 0;
+    int soldItemCountTotal = 0;
+    int unsoldItemCountTotal = 0;
 
     for (var slotIndex = 0; slotIndex < contents.length; ++slotIndex) {
       var content = contents[slotIndex];
@@ -178,13 +190,16 @@ public class SellGuiManager implements Listener {
 
       if (contentValuePerItem == null) {
         unsellableItems.add(new ReceiptItem(content, slotIndex, 0));
+        unsoldItemCountTotal += content.getAmount();
         continue;
       }
 
       var receipt = new ReceiptItem(content, slotIndex, contentValuePerItem);
 
       sellableItems.add(receipt);
+
       valueTotal += receipt.valueTotal;
+      soldItemCountTotal += content.getAmount();
     }
 
     // Better safe than sorry, :^)
@@ -196,7 +211,11 @@ public class SellGuiManager implements Listener {
       for (var unsoldItem : unsellableItems)
         didDropAny |= handBackOrDropAtPlayer(player, unsoldItem.item);
 
-      sendDetailEnumerationMessage(player, unsellableItems, false);
+      var unsellableDataEnvironmentBuilder = config.rootSection.getBaseEnvironment()
+        .withStaticVariable("unsold_item_count", unsoldItemCountTotal)
+        .withStaticVariable("unsold_slot_count", unsellableItems.size());
+
+      sendDetailEnumerationMessage(player, unsellableItems, unsellableDataEnvironmentBuilder, false);
     }
 
     if (!sellableItems.isEmpty()) {
@@ -213,7 +232,22 @@ public class SellGuiManager implements Listener {
             .build()
         );
       } else {
-        sendDetailEnumerationMessage(player, sellableItems, true);
+        var sellableDataEnvironmentBuilder = config.rootSection.getBaseEnvironment()
+          .withStaticVariable("value_total", economy.format(valueTotal))
+          .withStaticVariable("sold_item_count", soldItemCountTotal)
+          .withStaticVariable("sold_slot_count", sellableItems.size());
+
+        var messageEnvironment = sendDetailEnumerationMessage(player, sellableItems, sellableDataEnvironmentBuilder, true);
+        var titleMessage = config.rootSection.playerMessages.afterSellingTitle;
+        var subtitleMessage = config.rootSection.playerMessages.afterSellingSubtitle;
+
+        if (titleMessage != null || subtitleMessage != null) {
+          (titleMessage == null ? subtitleMessage : titleMessage).applicator.sendTitles(
+            player, titleMessage, messageEnvironment, subtitleMessage, messageEnvironment,
+            20, 45, 20
+          );
+        }
+
         // TODO: Persistently log receipts for each transaction, with a config-option to disable
       }
     }

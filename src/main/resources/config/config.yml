@@ -112,12 +112,16 @@ playerMessages:
   economyErrorHandingBackItems$: 'lut["prefix"] & "&cAufgrund eines internen Fehlers bei der Transaktion wurden deine Items zurückerstattet! Ursache: &4" & message'
   sellGuiClosedEmpty$: 'lut["prefix"] & "&7Es wurde &ckeine Aktion &7unternommen, da du das Verkaufsmenü im &cleeren Zustand &7geschlossen hast!"'
   someItemsWereDropped$: 'lut["prefix"] & "&7Nicht alle &czurückgehändigten Items &7fanden Platz in deinem Inventar, weshalb ein Teil davon &cgedroppt &7wurde!"'
+  # - receipt_groups: List<ReceiptGroup>
+  # - value_total: String
+  # - sold_item_count: String
+  # - sold_slot_count: String
   sellableReceiptFormatter$: |
-    lut["miniMessagePrefix"] & "<green>Verkaufte Items: " & iter_cat(receipt_groups, (receipt_group) => (
+    lut["miniMessagePrefix"] & "<green>Verkaufte Items <dark_gray>(<gray>" & sold_item_count & " Item(s) in " & sold_slot_count & " Slot(s); <green>+" & value_total & "<dark_gray>): " & iter_cat(receipt_groups, (receipt_group) => (
       "<aqua>" & receipt_group.amountTotal & "x <dark_gray>(" & iter_cat(receipt_group.entries, (group_entry) => (
-        "<gray><hover:show_text:'<gray>Slot " & group_entry.uiSlot & "'>" & group_entry.amount & "</hover>"
+        "<gray><u><hover:show_text:'<gray>Slot " & group_entry.uiSlot & "'>" & group_entry.amount & "</hover></u>"
       ), "<dark_gray>, ") & "<dark_gray>) <aqua>" & (
-        "<hover:show_text:'" & (
+        "<u><hover:show_text:'" & (
           iter_cat(filter(flatten(
             if receipt_group.displayName == null then null else receipt_group.displayName & "<reset>",
             iter_cat(receipt_group.loreLines, (it) => it & "<reset>", "<br>"),
@@ -125,11 +129,14 @@ playerMessages:
             iter_cat(receipt_group.potionEffects, (it) => it.name & " " & it.amplifier & " " & it.duration, "<br>"),
             if receipt_group.maximumDamage == 0 then null else "Durability: " & receipt_group.remainingDamage & "/" & receipt_group.maximumDamage
           ), (it) => it != null and it != ""), (it) => it, "<br><br>", "<red>Keine Metadaten vorhanden", true)
-        ) & "'>" & receipt_group.itemName & "</hover>"
+        ) & "'>" & receipt_group.itemName & "</hover></u>"
       ) & " <gray>zu <aqua>" & receipt_group.valuePerSingleItem & "/1 <gray>=> <aqua>" & receipt_group.valueTotal
     ), " <dark_gray>| ")
+  # - receipt_groups: List<ReceiptGroup>
+  # - unsold_item_count: String
+  # - unsold_slot_count: String
   unsellableReceiptFormatter$: |
-    lut["miniMessagePrefix"] & "<red>Unverkaufbare Items: " & iter_cat(receipt_groups, (receipt_group) => (
+    lut["miniMessagePrefix"] & "<red>Unverkaufbare Items <dark_gray>(<gray>" & unsold_item_count & " Item(s) in " & unsold_slot_count & " Slot(s)<dark_gray>): " & iter_cat(receipt_groups, (receipt_group) => (
       "<aqua>" & receipt_group.amountTotal & "x <dark_gray>(" & iter_cat(receipt_group.entries, (group_entry) => (
         "<gray><u><hover:show_text:'<gray>Slot " & group_entry.uiSlot & "'>" & group_entry.amount & "</hover></u>"
       ), "<dark_gray>, ") & "<dark_gray>) <aqua>" & (
@@ -144,6 +151,11 @@ playerMessages:
         ) & "'>" & receipt_group.itemName & "</hover></u>"
       )
     ), " <dark_gray>| ")
+  # - value_total: String
+  # - sold_slot_count: Integer
+  # - sold_item_count: Integer
+  afterSellingTitle$: '"&a+" & value_total'
+  afterSellingSubtitle$: '"&7Insgesamt &b" & sold_item_count & " &7Item(s)"'
 
 lut:
   prefix: '&8[&3SellGUI&8] '

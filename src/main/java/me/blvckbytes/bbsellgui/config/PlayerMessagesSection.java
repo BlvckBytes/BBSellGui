@@ -3,6 +3,7 @@ package me.blvckbytes.bbsellgui.config;
 import me.blvckbytes.bbconfigmapper.sections.AConfigSection;
 import me.blvckbytes.bukkitevaluable.BukkitEvaluable;
 import me.blvckbytes.gpeee.interpreter.EvaluationEnvironmentBuilder;
+import org.jetbrains.annotations.Nullable;
 
 public class PlayerMessagesSection extends AConfigSection {
 
@@ -28,6 +29,8 @@ public class PlayerMessagesSection extends AConfigSection {
   public BukkitEvaluable economyErrorHandingBackItems;
   public BukkitEvaluable sellGuiClosedEmpty;
   public BukkitEvaluable someItemsWereDropped;
+  public @Nullable BukkitEvaluable afterSellingTitle;
+  public @Nullable BukkitEvaluable afterSellingSubtitle;
 
   public BukkitEvaluable sellableReceiptFormatter;
   public BukkitEvaluable unsellableReceiptFormatter;
